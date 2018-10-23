@@ -30,7 +30,7 @@ def get_page(url, page, collection_handle=None):
             print('Blocked! Sleeping...')
             time.sleep(180)
             print('Retrying')
-        
+
     products = json.loads(data.decode())['products']
     return products
 
@@ -43,7 +43,7 @@ def get_page_collections(url):
             full_url + '?page={}'.format(page),
             data=None,
             headers={
-                'User-Agent': USER_AGENT
+                'User-Agent' : USER_AGENT
             }
         )
         while True:
@@ -132,9 +132,11 @@ def extract_products_collection(url, col):
 def extract_products(url, path, collections=None):
     with open(path, 'w') as f:
         writer = csv.writer(f)
-        writer.writerow(['Code', 'Collection', 'Category',
+        writer.writerow(['SKU', 'Handle', 'Collection', 'Category',
                          'Name', 'Variant Name',
-                         'Price', 'In Stock', 'URL', 'Image URL', 'Body'])
+                         'Price',
+                         'In Stock', 'URL',
+                         'Image URL', 'Body'])
         seen_variants = set()
         for col in get_page_collections(url):
             if collections and col['handle'] not in collections:
@@ -147,8 +149,7 @@ def extract_products(url, path, collections=None):
                     continue
 
                 seen_variants.add(variant_id)
-                writer.writerow([product['sku'], str(title),
-                                 product['product_type'],
+                writer.writerow([product['sku'], str(handle), str(title), product['product_type'],
                                  product['title'], product['option_value'],
                                  product['price'],
                                  product['stock'], product['product_url'],
@@ -163,9 +164,17 @@ if __name__ == '__main__':
     parser.add_option("--collections", "-c", dest="collections",
                       default="",
                       help="Download products only from the given collections (comma separated)")
+    parser.add_option("--output", "-o", dest="output",
+                      default="products.csv",
+                      help="Output filename")
     (options, args) = parser.parse_args()
     if len(args) > 0:
         url = fix_url(args[0])
+        outfile = 'products.csv'
+
+        if options.output:
+            outfile = options.output
+
         if options.list_collections:
             for col in get_page_collections(url):
                 print(col['handle'])
@@ -173,4 +182,4 @@ if __name__ == '__main__':
             collections = []
             if options.collections:
                 collections = options.collections.split(',')
-            extract_products(url, 'products.csv', collections)
+            extract_products(url, outfile, collections)

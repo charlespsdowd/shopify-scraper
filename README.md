@@ -5,6 +5,9 @@ Simple scraper to extract all products from shopify sites
 Requirements:
 Python 3
 
+/Applications/Python\ 3.7/Install\ Certificates.command
+
+
 Usage:
 python3 shopify.py [site's url]
 
